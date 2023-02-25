@@ -83,12 +83,17 @@ class Doodler extends Element {
     }
 
     update() {
-        this._velocity += 0.15;
+        this._velocity += 0.2;
         this._pos.y += this._velocity;
     }
 
     checkCollision(platform) {
-        if (this._pos.x < platform.pos.x + platform.width && this._pos.x + this._width > platform.pos.x && this._pos.y < platform.pos.y + platform.height && this._height + this._pos.y > platform.pos.y) {
+        console.log(this._velocity)
+
+        if (this._pos.x < platform.pos.x + platform.width && this._pos.x + this._width > platform.pos.x &&
+            this._pos.y < platform.pos.y - platform.height * 2 && this._pos.y + this._height > platform.pos.y &&
+            this._velocity > 0)
+        {
             this._velocity = -10;
         }
     }
@@ -109,7 +114,11 @@ class Model {
     }
 
     init() {
-        this._doodler = new Doodler(DOODLE_SIZE, DOODLE_SIZE, (GAME_WIDTH / 2), (GAME_HEIGHT - (DOODLE_SIZE + PLATFORM_HEIGHT)), DOODLE_SPEED);
+        this._doodler = new Doodler(DOODLE_SIZE, DOODLE_SIZE, (GAME_WIDTH / 2 - DOODLE_SIZE / 2), (GAME_HEIGHT - (DOODLE_SIZE + PLATFORM_HEIGHT)), DOODLE_SPEED);
+
+        let startingPlatformX = GAME_WIDTH / 2 - PLATFORM_WIDTH / 2;
+        let startingPlatformY = GAME_HEIGHT - PLATFORM_HEIGHT;
+        this._platforms.push(new Platform(PLATFORM_WIDTH, PLATFORM_HEIGHT, startingPlatformX, startingPlatformY, 0));
 
         for (let i = 0; i < NUM_PLATFORMS; i++) {
             let randomX = Math.random() * (GAME_WIDTH - PLATFORM_WIDTH);
@@ -157,23 +166,28 @@ class View {
         let cloneTemplate = document.importNode(this._template.content, true);
 
         if (model.doodler.status) {
-            let elemDoodler = cloneTemplate.querySelector(".defaultDoodler");
             let doodler = model.doodler
+            let elemDoodler = cloneTemplate.querySelector(".defaultDoodler");
+
             elemDoodler.style.marginLeft = doodler.pos.x + "px";
             elemDoodler.style.marginTop = doodler.pos.y + "px";
             elemDoodler.style.width = doodler.width + "px";
             elemDoodler.style.height = doodler.height + "px";
+
             this._game.appendChild(elemDoodler);
         }
 
-        let elemPlatform = cloneTemplate.querySelector(".defaultPlatform");
-        let platform = model.platforms
-        elemPlatform.style.marginLeft = platform[0].pos.x + "px";
-        elemPlatform.style.marginTop = platform[0].pos.y + "px";
-        elemPlatform.style.width = platform[0].width + "px";
-        elemPlatform.style.height = platform[0].height + "px";
+        model.platforms.forEach(platform => {
+            let cloneTemplate = document.importNode(this._template.content, true);
+            let elemPlatform = cloneTemplate.querySelector(".defaultPlatform");
 
-        this._game.append(elemPlatform);
+            elemPlatform.style.marginLeft = platform.pos.x + "px";
+            elemPlatform.style.marginTop = platform.pos.y + "px";
+            elemPlatform.style.width = platform.width + "px";
+            elemPlatform.style.height = platform.height + "px";
+
+            this._game.appendChild(elemPlatform);
+        })
     }
 }
 
